@@ -22,13 +22,30 @@ server.post('/api/messages', connector.listen());
 //=========================================================
 // Bots Dialogs - Expand dialog with input from screen by
 // 				  passing an array of functions.
+//              - Add mulitiple dialog branches to track
+//				  and retain information that the user
+//				  has entered.
 //=========================================================
 
 bot.dialog('/', [
+    function (session, args, next) {
+        if (!session.userData.name) {
+            session.beginDialog('/profile');
+        } else {
+            next();
+        }
+    },
+    function (session, results) {
+        session.send('Hello %s!', session.userData.name);
+    }
+]);
+
+bot.dialog('/profile', [
 	function (session) {
 		builder.Prompts.text(session, 'Hi! What is your name?');
 	},
 	function (session, results) {
-	    session.send('Hello %s!', results.response);
+	    session.userData.name = results.response;
+	    session.endDialog();
 	}
 ]);
