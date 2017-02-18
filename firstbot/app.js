@@ -17,6 +17,8 @@ var connector = new builder.ChatConnector({
     appPassword: process.env.MICROSOFT_APP_PASSWORD
 });
 var bot = new builder.UniversalBot(connector);
+var intents = new builder.IntentDialog();
+
 server.post('/api/messages', connector.listen());
 
 //=========================================================
@@ -25,9 +27,22 @@ server.post('/api/messages', connector.listen());
 //              - Add mulitiple dialog branches to track
 //				  and retain information that the user
 //				  has entered.
+//              - Add intents to the dialog to gauge what
+//                the users intentions are and route the
+//                responses accordingly.
 //=========================================================
 
-bot.dialog('/', [
+bot.dialog('/', intents);
+
+intents.matches(/^change name/i, [
+    function (session) {
+        session.beginDialog('/profile');
+    },
+    function (session, results) {
+        session.send('Ok... Changed your name to %s', session.userData.name);
+    }
+]);
+intents.onDefault([
     function (session, args, next) {
         if (!session.userData.name) {
             session.beginDialog('/profile');
